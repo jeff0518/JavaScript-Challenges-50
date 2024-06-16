@@ -10,7 +10,6 @@ let paintBtn = document.getElementById("paint-btn");
 let widthValue = document.getElementById("width-value");
 let heightValue = document.getElementById("height-value");
 
-// 宣告 events ，裡面是 mouse event跟 touch event
 let events = {
   mouse: {
     down: "mousedown",
@@ -28,7 +27,6 @@ let deviceType = "";
 let draw = false;
 let erase = false;
 
-// 判斷此次操作是否是touch
 const isTouchDevice = () => {
   try {
     document.createEvent("TouchEvent");
@@ -42,60 +40,61 @@ const isTouchDevice = () => {
 
 isTouchDevice();
 
-gridButton.addEventListener("click", () => {
+const updateGridDisplay = () => {
+  widthValue.textContent =
+    gridWidth.value < 10 ? `0${gridWidth.value}` : gridWidth.value;
+  heightValue.textContent =
+    gridHeight.value < 10 ? `0${gridHeight.value}` : gridHeight.value;
+};
+
+const createGrid = () => {
   container.innerHTML = "";
   let count = 0;
   for (let i = 0; i < gridHeight.value; i++) {
     count += 2;
-    let div = document.createElement("div");
-    div.classList.add("gridRow");
+    const row = document.createElement("div");
+    row.classList.add("gridRow");
 
     for (let j = 0; j < gridWidth.value; j++) {
       count += 2;
-      let col = document.createElement("div");
+      const col = document.createElement("div");
       col.classList.add("gridCol");
-      col.setAttribute("id", `gridCol${count}`);
-      col.addEventListener(events[deviceType].down, () => {
-        draw = true;
-        if (erase) {
-          col.style.backgroundColor = "transparent";
-        } else {
-          col.style.backgroundColor = colorButton.value;
-        }
-      });
-
-      col.addEventListener(events[deviceType].move, (e) => {
-        if (draw) {
-          let elementId = document.elementFromPoint(
-            !isTouchDevice() ? e.clientX : e.touches[0].clientX,
-            !isTouchDevice() ? e.clientY : e.touches[0].clientY
-          ).id;
-          checker(elementId);
-        }
-      });
-
-      col.addEventListener(events[deviceType].up, () => {
-        draw = false;
-      });
-      div.appendChild(col);
+      col.id = `gridCol${count}`;
+      addGridEvents(col);
+      row.appendChild(col);
     }
 
-    container.appendChild(div);
+    container.appendChild(row);
   }
-});
+};
 
-function checker(elementId) {
-  let gridColumns = document.querySelectorAll(".gridCol");
-  gridColumns.forEach((element) => {
-    if (elementId === element.id) {
-      if (draw && !erase) {
-        element.style.backgroundColor = colorButton.value;
-      } else if (draw && erase) {
-        element.style.backgroundColor = "transparent";
+const addGridEvents = (col) => {
+  col.addEventListener(events[deviceType].down, () => {
+    draw = true;
+    col.style.backgroundColor = erase ? "transparent" : colorButton.value;
+  });
+
+  col.addEventListener(events[deviceType].move, (e) => {
+    if (draw) {
+      const element = document.elementFromPoint(
+        deviceType === "mouse" ? e.clientX : e.touches[0].clientX,
+        deviceType === "mouse" ? e.clientY : e.touches[0].clientY
+      );
+      if (element && element.classList.contains("gridCol")) {
+        element.style.backgroundColor = erase
+          ? "transparent"
+          : colorButton.value;
       }
     }
   });
-}
+
+  col.addEventListener(events[deviceType].up, () => {
+    draw = false;
+  });
+};
+
+// 各按鈕監聽器
+gridButton.addEventListener("click", createGrid);
 
 clearGridButton.addEventListener("click", () => {
   container.innerHTML = "";
@@ -109,19 +108,12 @@ paintBtn.addEventListener("click", () => {
   erase = false;
 });
 
-gridWidth.addEventListener("input", () => {
-  widthValue.innerHTML =
-    gridWidth.value < 9 ? `0${gridWidth.value}` : gridWidth.value;
-});
+gridWidth.addEventListener("input", updateGridDisplay);
+gridHeight.addEventListener("input", updateGridDisplay);
 
-gridHeight.addEventListener("input", () => {
-  heightValue.innerHTML =
-    gridHeight.value < 9 ? `0${gridHeight.value}` : gridHeight.value;
-});
-
+// 初始化，使用 updateGridDisplay() 是為了確保顯示是合乎我們的設定
 window.onload = () => {
   gridHeight.value = 0;
   gridWidth.value = 0;
-  widthValue.innerHTML = gridWidth.value;
-  heightValue.innerHTML = gridHeight.value;
+  updateGridDisplay();
 };
