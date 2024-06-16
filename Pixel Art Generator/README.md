@@ -1,9 +1,3 @@
 # Project1: Pixel Art Generator
 
-此計畫發想至 **AsmrProg-YT**  的 YT 頻道
-
-## Projects
-
-以下是我的專案清單:
-
-01. Pixel Art Generator
+此計畫是重新練習 JavaScript 目前暫時不會對 Html 以及 Css 的內容作大幅度更改。 
